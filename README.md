@@ -11,6 +11,8 @@ PL / SQL Project based on a library's database.
 	<li>Employees(ID[PK],Name,Addres,Phone_Number,User_Name,Password,Card,Paycheck)</li>
 </ul>
 
+<img src="https://raw.githubusercontent.com/victorst79/PL-SQL-project/master/img/library.png">
+
 <h3>Normalization</h3>
 <ul>
 	<li>Book(ISBN, Quantity)</li>
