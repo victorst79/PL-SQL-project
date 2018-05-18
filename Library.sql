@@ -236,11 +236,11 @@ END;
 
 
 --2--
-CREATE OR REPLACE PROCEDURE viewItem_library(auxItemID IN NUMBER)
+CREATE OR REPLACE PROCEDURE viewItem_library(auxItemID IN VARCHAR2)
 IS
   auxISBN VARCHAR2(4);
   auxTitle VARCHAR2(50);
-  auxYear INT;
+  auxYear NUMBER;
   auxState VARCHAR2(10);
   auxDebyCost NUMBER(10,2);
   auxLostCost NUMBER(10,2);
@@ -273,15 +273,31 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('LOST COST: ' || auxLostCost);
     DBMS_OUTPUT.PUT_LINE('ADDRESS: ' || auxAddress);
     DBMS_OUTPUT.PUT_LINE('------------------------------------------');
+  ELSIF auxVideo > 0 THEN
+    SELECT title, year, state, avalability, debycost, lostcost, address
+    INTO auxTitle, auxYear, auxState, auxAbala, auxDebyCost, auxLostCost, auxAddress
+    FROM video
+    WHERE videoid LIKE auxItemID;
   
+    DBMS_OUTPUT.PUT_LINE('VIDEO ' || auxItemID || ' INFO');
+    DBMS_OUTPUT.PUT_LINE('------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('TITLE: ' || auxTitle);
+    DBMS_OUTPUT.PUT_LINE('YEAR: ' || auxYear);
+    DBMS_OUTPUT.PUT_LINE('STATE: ' || auxState);
+    DBMS_OUTPUT.PUT_LINE('AVALABILITY: ' || auxAbala);
+    DBMS_OUTPUT.PUT_LINE('DEBY COST: ' || auxDebyCost);
+    DBMS_OUTPUT.PUT_LINE('LOST COST: ' || auxLostCost);
+    DBMS_OUTPUT.PUT_LINE('ADDRESS: ' || auxAddress);
+    DBMS_OUTPUT.PUT_LINE('------------------------------------------');
+  END IF;
 END;
 
 SET SERVEROUTPUT ON;
 DECLARE
-  auxCustoID VARCHAR2(10);
+  auxItemID VARCHAR2(10);
 BEGIN
-  auxCustoID := &CustomerID;
-  viewCustomer_library(auxCustoID);
+  auxItemID := &Item_ID;
+  viewItem_library(auxItemID);
 END;
 
 
@@ -821,4 +837,32 @@ BEGIN
   viewCustomer_library(auxCustoID);
 END;
 
+
+
+--OBJECT--
+CREATE OR REPLACE TYPE director_library AS OBJECT(
+employeeid NUMBER,
+name VARCHAR2(40),
+address VARCHAR2(50),
+phone INT(9),
+paycheck NUMBER(10,2),
+extrapaycheck NUMBER(10,2)
+);
+
+SET SERVEROUTPUT ON;
+DECLARE 
+   director director_library; 
+BEGIN 
+   director := director_library('212', 'CHANDLER', 'OUR HEARTHS', 688688688,1150.5,500); 
+   dbms_output.put_line('DIRECTOR ID: '|| director.employeeid); 
+   dbms_output.put_line('--------------------------------------------' ); 
+   dbms_output.put_line('NAME: '|| director.name); 
+   dbms_output.put_line('ADDRESS: '|| director.address); 
+   dbms_output.put_line('PHONE: '|| director.phone); 
+   dbms_output.put_line('PAYCHECK: '|| director.paycheck); 
+   dbms_output.put_line('EXTRA: '|| director.extrapaycheck);
+   dbms_output.put_line('--------------------------------------------' ); 
+END;
+
+SELECT * FROM employee;
 --MODIFICAR 1 2 y 3--
