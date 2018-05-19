@@ -206,6 +206,7 @@ INSERT INTO Rent VALUES (155, 'V1CH16', '29-04-2018', '29-05-2018');
 
 --FUNCTIONS--
 --1--
+--CUSTOMER--
 CREATE OR REPLACE PROCEDURE login_library(user IN VARCHAR2, pass IN VARCHAR2)
 IS
   passAux customer.password%TYPE;
@@ -233,6 +234,37 @@ BEGIN
   pass := &Password;
   login_library(user,pass);
 END;
+
+
+--EMPLOYEE-
+CREATE OR REPLACE PROCEDURE login_employee_library(user IN VARCHAR2, pass IN VARCHAR2)
+IS
+  passAux employee.password%TYPE;
+BEGIN
+  SELECT password INTO passAux
+  FROM employee
+  WHERE username LIKE user;
+  
+  IF passAux LIKE pass THEN
+    DBMS_OUTPUT.PUT_LINE('User ' || user || ' loging succesfull');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('Password incorrect');
+  END IF;
+  
+  EXCEPTION WHEN no_data_found THEN 
+  DBMS_OUTPUT.PUT_LINE('User incorrect');
+END;
+
+SET SERVEROUTPUT ON;
+DECLARE
+  user employee.username%TYPE;
+  pass employee.password%TYPE;
+BEGIN
+  user := &Username;
+  pass := &Password;
+  login_employee_library(user,pass);
+END;
+
 
 
 --2--
@@ -303,6 +335,7 @@ END;
 
 
 --3--
+--CUSTOMER--
 CREATE OR REPLACE PROCEDURE customerAcount_library(custoID IN customer.customerid%TYPE)
 IS
   auxCard NUMBER;
@@ -348,6 +381,52 @@ BEGIN
   customerAcount_library(custoID);
 END;
 
+
+--EMPLOYEE--
+CREATE OR REPLACE PROCEDURE employeeAcount_library(emploID IN employee.employeeid%TYPE)
+IS
+  auxCard NUMBER;
+  auxFines NUMBER;
+  auxItem VARCHAR(6);
+  rented number := 0;
+BEGIN
+  SELECT cardnumber INTO auxCard
+  FROM employee
+  WHERE employeeid LIKE emploID;
+  
+  SELECT COUNT(*) INTO rented
+  FROM rent
+  WHERE rent.cardid LIKE auxcard;
+  
+  DBMS_OUTPUT.PUT_LINE('The user card is ' || auxCard);  
+  IF (rented > 0) THEN
+    SELECT rent.itemid INTO auxItem
+    FROM rent,card
+    WHERE card.cardid = rent.cardid
+    AND card.cardid LIKE auxCard;    
+    
+    DBMS_OUTPUT.PUT_LINE('The user has ' || auxItem || ' rented');
+  ELSE    
+    DBMS_OUTPUT.PUT_LINE('This user has no rents'); 
+  END IF;
+  
+  SELECT fines INTO auxFines
+  FROM card
+  WHERE cardid LIKE auxcard;
+  
+  DBMS_OUTPUT.PUT_LINE('The user fines are ' || auxFines);
+    
+  EXCEPTION WHEN no_data_found THEN 
+  DBMS_OUTPUT.PUT_LINE('NOT DATA FOUND');
+END;
+
+SET SERVEROUTPUT ON;
+DECLARE
+  emploID employee.employeeid%TYPE;
+BEGIN
+  emploID := &Employee_ID;
+  employeeAcount_library(emploID);
+END;
 
 
 --4--
@@ -440,6 +519,7 @@ END;
 
 
 --6--
+--CUSTOMER--
 CREATE OR REPLACE PROCEDURE updateInfo_library(auxCustomer IN customer.customerid%TYPE, pNumber NUMBER, address VARCHAR2, newPass VARCHAR2)
 IS
 BEGIN
@@ -462,7 +542,33 @@ BEGIN
   updateInfo_library(auxCustomer,pNumber,address,newPass);
 END;
 
+--EMPLOYEE--
+CREATE OR REPLACE PROCEDURE updateInfoEmployee_library(auxEmployee IN employee.employeeid%TYPE, pNumber NUMBER, address VARCHAR2, newPass VARCHAR2, newPayCheck NUMBER,
+newBranch VARCHAR2)
+IS
+BEGIN
+  UPDATE employee
+  SET phone = pNumber, customeraddress = address, password = newPass, paycheck = auxEmployee, branchname = newBranch
+  WHERE employeeid = auxEmployee;
+END;
 
+SET SERVEROUTPUT ON;
+DECLARE
+  auxEmployee emplouee.employeeid%TYPE;
+  pNumber NUMBER;
+  address VARCHAR2;
+  newPass VARCHAR2;
+  newPayCheck NUMBER;
+  newBranch VARCHAR2;
+BEGIN
+  auxCustomer := &Customer_ID;
+  pNumber := &Write_your_new_phone_number_or_the_old_one_if_you_do_not_want_to_change_it;
+  address := &Write_your_new_address_or_the_old_one_if_you_do_not_want_to_change_it;
+  newPass := &Write_your_new_password_or_the_old_one_if_you_do_not_want_to_change_it;
+  newPayCheck := &Write_your_new_paycheck_or_the_old_one_if_you_do_not_want_to_change_it;
+  newBranch := &Write_your_new_branch_or_the_old_one_if_you_do_not_want_to_change_it;
+  updateInfoEmployee_library(auxCustomer,pNumber,address,newPass,newPayCheck,newBranch);
+END;
 
 --7--
 CREATE OR REPLACE PROCEDURE addCustomer_library(auxCustomerId IN NUMBER, auxName IN VARCHAR2, auxCustomerAddress IN VARCHAR2, auxPhone IN NUMBER,
