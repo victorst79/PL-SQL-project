@@ -1,4 +1,4 @@
---DATABASES PROYECT--
+--LIBRARY PROYECT--
 
 --CREATE TABLES--
 CREATE TABLE Card(
@@ -68,6 +68,7 @@ CREATE TABLE Video(
   address VARCHAR(50),
   CONSTRAINT Video_PK PRIMARY KEY (title,year,videoID));
 
+
 --SELECT--
 SELECT * FROM Card;
 SELECT * FROM Customer;
@@ -78,6 +79,7 @@ SELECT * FROM Book;
 SELECT * FROM Video;
 SELECT * FROM Rent;
 
+
 --DROP TABLES--
 DROP TABLE Card;
 DROP TABLE Customer;
@@ -87,6 +89,7 @@ DROP TABLE Location;
 DROP TABLE Book;
 DROP TABLE Video;
 DROP TABLE Rent;
+
 
 --FOREIGN KEYS--
 ALTER TABLE Customer
@@ -204,10 +207,11 @@ INSERT INTO Rent VALUES (105, 'V1DI00', '02-05-2018', '25-05-2018');
 INSERT INTO Rent VALUES (154, 'B1L321', '04-05-2018', '26-05-2018');
 INSERT INTO Rent VALUES (155, 'V1CH16', '29-04-2018', '29-05-2018');
 
+
 --FUNCTIONS--
 --1--
 --CUSTOMER--
-CREATE OR REPLACE PROCEDURE login_library(user IN VARCHAR2, pass IN VARCHAR2)
+CREATE OR REPLACE PROCEDURE loginCustomer_library(user IN VARCHAR2, pass IN VARCHAR2)
 IS
   passAux customer.password%TYPE;
 BEGIN
@@ -237,7 +241,7 @@ END;
 
 
 --EMPLOYEE-
-CREATE OR REPLACE PROCEDURE login_employee_library(user IN VARCHAR2, pass IN VARCHAR2)
+CREATE OR REPLACE PROCEDURE loginEmployee_library(user IN VARCHAR2, pass IN VARCHAR2)
 IS
   passAux employee.password%TYPE;
 BEGIN
@@ -336,7 +340,7 @@ END;
 
 --3--
 --CUSTOMER--
-CREATE OR REPLACE PROCEDURE customerAcount_library(custoID IN customer.customerid%TYPE)
+CREATE OR REPLACE PROCEDURE customerAccount_library(custoID IN customer.customerid%TYPE)
 IS
   auxCard NUMBER;
   auxFines NUMBER;
@@ -383,7 +387,7 @@ END;
 
 
 --EMPLOYEE--
-CREATE OR REPLACE PROCEDURE employeeAcount_library(emploID IN employee.employeeid%TYPE)
+CREATE OR REPLACE PROCEDURE employeeAccount_library(emploID IN employee.employeeid%TYPE)
 IS
   auxCard NUMBER;
   auxFines NUMBER;
@@ -429,25 +433,57 @@ BEGIN
 END;
 
 
+
 --4--
 CREATE OR REPLACE PROCEDURE rentItem_library(auxCard IN NUMBER, auxItemID IN VARCHAR2, itemType IN VARCHAR2, auxDate IN DATE)
 IS
+  statusAux VARCHAR2(1);
+  itemStatus VARCHAR2(1);
 BEGIN
   
-  IF itemType LIKE 'book' THEN
-    UPDATE book
-    SET avalability = 'O'
-    WHERE bookid LIKE auxItemID;
+  SELECT status INTO statusAux
+  FROM card
+  WHERE cardid LIKE auxCard;
+  
+  IF statusAux LIKE 'A' THEN
+    IF itemType LIKE 'book' THEN
+      SELECT avalability INTO itemStatus
+      FROM book
+      WHERE bookid LIKE auxItemID;
+      
+      IF itemStatus LIKE 'A' THEN
+        UPDATE book
+        SET avalability = 'O'
+        WHERE bookid LIKE auxItemID;
+        
+        INSERT INTO rent
+        VALUES (auxCard,auxItemID,sysdate,auxDate);
+        DBMS_OUTPUT.PUT_LINE('Item ' || auxItemID || ' rented');
+      ELSE
+        DBMS_OUTPUT.PUT_LINE('The item is already rented')
+      END IF;
+      
+    ELSIF itemType LIKE 'video' THEN
+     
+      SELECT avalability INTO itemStatus
+      FROM video
+      WHERE videoid LIKE auxItemID;
+      
+      IF itemStatus LIKE 'A' THEN
+        UPDATE video
+        SET avalability = 'O'
+        WHERE videoid LIKE auxItemID;
+        
+        INSERT INTO rent
+        VALUES (auxCard,auxItemID,sysdate,auxDate);
+        DBMS_OUTPUT.PUT_LINE('Item ' || auxItemID || ' rented');
+      ELSE
+        DBMS_OUTPUT.PUT_LINE('The item is already rented')
+      END IF;
     
-  ELSIF itemType LIKE 'video' THEN
-    UPDATE video
-    SET avalability = 'O'
-    WHERE videoid LIKE auxItemID;
-  END IF;
-    
-    INSERT INTO rent
-    VALUES (auxCard,auxItemID,sysdate,auxDate);
-    DBMS_OUTPUT.PUT_LINE('Item ' || auxItemID || ' rented');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('The user is blocked');
+  END IF;    
 END;
 
 SET SERVEROUTPUT ON;
@@ -520,7 +556,7 @@ END;
 
 --6--
 --CUSTOMER--
-CREATE OR REPLACE PROCEDURE updateInfo_library(auxCustomer IN customer.customerid%TYPE, pNumber NUMBER, address VARCHAR2, newPass VARCHAR2)
+CREATE OR REPLACE PROCEDURE updateInfoCusto_library(auxCustomer IN customer.customerid%TYPE, pNumber NUMBER, address VARCHAR2, newPass VARCHAR2)
 IS
 BEGIN
   UPDATE customer
@@ -543,7 +579,7 @@ BEGIN
 END;
 
 --EMPLOYEE--
-CREATE OR REPLACE PROCEDURE updateInfoEmployee_library(auxEmployee IN employee.employeeid%TYPE, pNumber NUMBER, address VARCHAR2, newPass VARCHAR2, newPayCheck NUMBER,
+CREATE OR REPLACE PROCEDURE updateInfoEmp_library(auxEmployee IN employee.employeeid%TYPE, pNumber NUMBER, address VARCHAR2, newPass VARCHAR2, newPayCheck NUMBER,
 newBranch VARCHAR2)
 IS
 BEGIN
@@ -569,6 +605,8 @@ BEGIN
   newBranch := &Write_your_new_branch_or_the_old_one_if_you_do_not_want_to_change_it;
   updateInfoEmployee_library(auxCustomer,pNumber,address,newPass,newPayCheck,newBranch);
 END;
+
+
 
 --7--
 CREATE OR REPLACE PROCEDURE addCustomer_library(auxCustomerId IN NUMBER, auxName IN VARCHAR2, auxCustomerAddress IN VARCHAR2, auxPhone IN NUMBER,
@@ -602,9 +640,23 @@ END;
 
 
 --8--
-CREATE OR REPLACE TRIGGER addCardTrigger_library
+--CUSTOMER--
+CREATE OR REPLACE TRIGGER addCardCusto_library
 AFTER INSERT
 ON customer
+FOR EACH ROW
+DECLARE
+BEGIN
+  INSERT INTO card
+  VALUES (:new.cardnumber,'A',0);
+  
+  DBMS_OUTPUT.PUT_LINE('Card created');
+END;
+
+--EMPLOYEE--
+CREATE OR REPLACE TRIGGER addCardEmp_library
+AFTER INSERT
+ON employee
 FOR EACH ROW
 DECLARE
 BEGIN
@@ -714,7 +766,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('This item is not rented at the moment');
   END IF;
   EXCEPTION WHEN no_data_found THEN 
-  DBMS_OUTPUT.PUT_LINE('ItemID incorrect');    
+  DBMS_OUTPUT.PUT_LINE('Item ID incorrect');    
 END;
 
 SET SERVEROUTPUT ON;
@@ -730,8 +782,6 @@ SELECT * FROM book;
 
 
 --11--
-DROP TRIGGER modifyFines_library;
-
 CREATE OR REPLACE TRIGGER modifyFines_library
 AFTER DELETE
 ON rent
@@ -809,6 +859,7 @@ SELECT * FROM card;
 
 
 --12--
+--BOOK--
 CREATE OR REPLACE PROCEDURE addBook_library(auxISBN IN VARCHAR2, auxBookID IN VARCHAR2, auxState IN VARCHAR2, auxDebyCost IN NUMBER,
 auxLostCost IN NUMBER, auxAddress IN VARCHAR2)
 IS
@@ -818,6 +869,7 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Book inserted correctly');
 END;
 
+--VIDEO--
 CREATE OR REPLACE PROCEDURE addVideo_library(auxTitle IN VARCHAR2, auxYear IN INT, auxVideoID IN VARCHAR2, auxState IN VARCHAR2, auxDebyCost IN NUMBER,
 auxLostCost IN NUMBER, auxAddress IN VARCHAR2)
 IS
@@ -827,6 +879,7 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Video inserted correctly');
 END;
 
+--EXAMPLES--
 SET SERVEROUTPUT ON;
 DECLARE
   auxISBN VARCHAR2(4);
@@ -905,10 +958,12 @@ BEGIN
 END;
 
 
---14--
---EL EJERCICIO 5 HACE EXACTAMENTE LO MISMO--
 
---15--
+--14--
+--The statement indicates the creation of another function, but we have made function five meet both needs--
+
+
+--14--
 CREATE OR REPLACE PROCEDURE viewCustomer_library(auxCustomerID IN NUMBER)
 IS
   custoName VARCHAR2(40);
@@ -969,6 +1024,3 @@ BEGIN
    dbms_output.put_line('EXTRA: '|| director.extrapaycheck);
    dbms_output.put_line('--------------------------------------------' ); 
 END;
-
-SELECT * FROM employee;
---MODIFICAR 1 2 y 3--
