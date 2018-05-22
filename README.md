@@ -15,14 +15,12 @@ PL / SQL Project based on a library's database.
 
 <h3>Normalization</h3>
 <ul>
-	<li>Book(ISBN, Quantity)</li>
-	<li>Video(Title, Year, Quantity)</li>
-	<li>BookCopy(ISBN [References Book], Item_ID [References Item])</li>
-	<li>VideoCopy(Titulo, Año [References Video], Item_ID [References Item])</li>
-	<li>Item(ID, Lost_Cost, Delay_Cost, Availability, State, Item_Type: boolean(Book-Video))</li>
-	<li>Customer(ID, Name, Address, Phone_Number, Date_Sing_Up, User_Name, Password, Card_Number [References Card])</li>
-	<li>Employee(ID, Name, Address, Phone_Number, User_Name, Password, Card_Number [References Card], Paycheck)</li>
-	<li>Card(Number, Estado, Multas)</li>
-	<li>Rent(Item_ID [References Item], Customer ID [References Item])</li>
-	<li>Branch(Name, Address, Phone_Number, Media, Employee_ID [References Employee])</li>
+	<li><b>CARD</b> (<u>ID</u>, Fines, Status)</li>
+	<li><b>CUSTOMER</b> (<u>ID</u>, Name, Address, Phone_number, Card_number [References CARD(Number)], Password, User_name, Date_sign_up)</li>
+	<li><b>EMPLOYEE</b> (<u>ID</u>, Name, Address, Phone_number, Card_number [References CARD(Number)], Password, User_name, Paycheck, Branch_name [References BRANCH(Name)])</li>
+	<li><b>BRANCH</b> (<u>Name</u>, Address [References LOCATION(Address)], Phone_number)</li>
+	<li><b>LOCATION</b> (Address)</li>
+	<li><b>RENT</b> (<u>Card_ID [References CARD(Number)],Item_ID [References BOOK or VIDEO(ID)]</u>, Date, Return_date)</li>
+	<li><b>BOOK</b> (<u>ISBN, ID</u>, State, Avalability, Deby_cost, Lost_cost, Address [References LOCATION(Address)])</li>
+	<li><b>VIDEO</b> (<u>Title, Year, ID</u>, State, Avalability, Deby_cost, Lost_cost, Address [References LOCATION(Address)])</li>
 </ul>
