@@ -214,7 +214,10 @@ INSERT INTO Rent VALUES (155, 'V1CH16', '29-04-2018', '29-05-2018');
 CREATE OR REPLACE PROCEDURE loginCustomer_library(user IN VARCHAR2, pass IN VARCHAR2)
 IS
   passAux customer.password%TYPE;
+  incorrect_password EXCEPTION;
 BEGIN
+   
+   
   SELECT password INTO passAux
   FROM customer
   WHERE username LIKE user;
@@ -222,11 +225,13 @@ BEGIN
   IF passAux LIKE pass THEN
     DBMS_OUTPUT.PUT_LINE('User ' || user || ' loging succesfull');
   ELSE
-    DBMS_OUTPUT.PUT_LINE('Password incorrect');
+    RAISE incorrect_password;
   END IF;
   
-  EXCEPTION WHEN no_data_found THEN 
-  DBMS_OUTPUT.PUT_LINE('User incorrect');
+  EXCEPTION
+  WHEN no_data_found OR incorrect_password THEN 
+       DBMS_OUTPUT.PUT_LINE('Incorrect username or password');
+                                   
 END;
 
 SET SERVEROUTPUT ON;
@@ -244,6 +249,7 @@ END;
 CREATE OR REPLACE PROCEDURE loginEmployee_library(user IN VARCHAR2, pass IN VARCHAR2)
 IS
   passAux employee.password%TYPE;
+  incorrect_password EXCEPTION;
 BEGIN
   SELECT password INTO passAux
   FROM employee
@@ -252,11 +258,12 @@ BEGIN
   IF passAux LIKE pass THEN
     DBMS_OUTPUT.PUT_LINE('User ' || user || ' loging succesfull');
   ELSE
-    DBMS_OUTPUT.PUT_LINE('Password incorrect');
+    RAISE incorrect_password;
   END IF;
   
-  EXCEPTION WHEN no_data_found THEN 
-  DBMS_OUTPUT.PUT_LINE('User incorrect');
+  EXCEPTION
+  WHEN no_data_found OR incorrect_password THEN 
+       DBMS_OUTPUT.PUT_LINE('Incorrect username or password');
 END;
 
 SET SERVEROUTPUT ON;
