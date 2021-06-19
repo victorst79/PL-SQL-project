@@ -241,7 +241,7 @@ DECLARE
 BEGIN
   user := &Username;
   pass := &Password;
-  login_library(user,pass);
+  loginCustomer_library(user,pass);
 END;
 
 
@@ -273,7 +273,7 @@ DECLARE
 BEGIN
   user := &Username;
   pass := &Password;
-  login_employee_library(user,pass);
+  loginEmployee_library(user,pass);
 END;
 
 
